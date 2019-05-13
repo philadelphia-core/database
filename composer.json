@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": ">=1.0.0",
+        "php": ">=5.6.9",
         "philadelphia/app": ">=1.0.0",
         "philadelphia/helpers": ">=1.0.0"
     },
