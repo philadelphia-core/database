@@ -29,14 +29,13 @@
     public function __construct($settings = null)
     {
 			$settings = new Settings($settings);
-			
       $this->driver = $settings->get('database.driver');
       $this->host   = $settings->get('database.host');
-      $this->dbname = $settings->get('database.username');
+      $this->dbname = $settings->get('database.dbname');
       $this->username = $settings->get('database.username');
       $this->password = $settings->get('database.password');
       $this->chatset  = $settings->get('database.chatset');
-
+			
       $this->setConfig($settings);
 
       $this->__connect();
