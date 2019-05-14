@@ -22,6 +22,11 @@
     private $sql;
     private $values = [];
 
+		public static function setSettings($pathOrArray) 
+		{
+			Settings::setSettingsToDatabase($pathOrArray);
+		}
+
     /**
      * Constructor, run connection with database
      * 
