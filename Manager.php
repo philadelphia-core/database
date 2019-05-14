@@ -22,18 +22,14 @@
     private $sql;
     private $values = [];
 
-		public static function setSettings($pathOrArray) 
-		{
-			Settings::setSettingsToDatabase($pathOrArray);
-		}
-
     /**
      * Constructor, run connection with database
      * 
      */
-    public function __construct()
+    public function __construct($settings = null)
     {
-      $settings = new Settings::$settings;
+			$settings = new Settings($settings);
+			
       $this->driver = $settings->get('database.driver');
       $this->host   = $settings->get('database.host');
       $this->dbname = $settings->get('database.username');
