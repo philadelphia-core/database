@@ -5,7 +5,8 @@
   use PDO;
   use PhiladelPhia\App\Exceptions;
   use PhiladelPhia\App\Settings;
-  use PhiladelPhia\Database\Interfaces\ManagerInterface;
+	use PhiladelPhia\Database\Interfaces\ManagerInterface;
+	use PhiladelPhia\Database\Builder;
   use PhiladelPhia\Database\Interfaces\BuilderInterface as IBuilder;
 
   class Manager 
@@ -34,11 +35,15 @@
       $this->dbname = $settings->get('database.dbname');
       $this->username = $settings->get('database.username');
       $this->password = $settings->get('database.password');
-      $this->chatset  = $settings->get('database.chatset');
+			$this->chatset  = $settings->get('database.chatset');
 			
+			// Set options for connection with PDO.
       $this->setConfig($settings);
 
-      $this->__connect();
+			$this->__connect();
+
+			// Set instance for Builder.
+			$this->__setConnectionBuilder();
     }
 
     /**
@@ -57,7 +62,13 @@
         $this->rollBack();
         throw new Exceptions($e->getCode(), 'Connection failed:'.$e->getMessage());
       }
-    }
+		}
+		
+
+		private function __setConnectionBuilder()
+		{
+			Builder::setInstanceDatabase($this);
+		}
 
     /**
 		 * Set config.

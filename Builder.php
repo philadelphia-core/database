@@ -3,8 +3,8 @@
   namespace PhiladelPhia\Database;
 
   use PhiladelPhia\App\Exceptions;
+  use PhiladelPhia\Database\Interfaces\ManagerInterface;
   use PhiladelPhia\Database\Interfaces\BuilderInterface;
-  use PhiladelPhia\Database\Manager;
 
   use PhiladelPhia\Database\Query\Where;
   use PhiladelPhia\Database\Query\OrderBy;
@@ -25,6 +25,8 @@
     use Insert; 
     use Update; 
     use Delete;
+
+    public $instance;
 
     protected $sql;
     protected $select;
@@ -51,12 +53,13 @@
     ];
 
     /**
-     * instance Database
+     * Set instance Database
      */
-    protected function __construct() 
+    public static function setInstanceDatabase(ManagerInterface $instance)
     {
-      $this->db = new Database();
+      static::$instance = $instance;
     }
+
 
     /**
      * Add to sentence sql the property `AND`
