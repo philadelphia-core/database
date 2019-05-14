@@ -6,283 +6,295 @@
 
 	trait Where
 	{
-		protected function __where($args) {
+		protected static function __where($args) {
       foreach($args as $key => $value) 
       {
         if ($key > 0 && $key < count($args))
         {
-          $this->addAnd($this->where);
+          self::addAnd(self::$where);
         }
         
         if (count($value) == 2)
         {
           list($field, $val) = $value;
-          $this->where .= "{$field} = {$this->db->quote($val)}";
+          self::$where .= sprintf(
+                                  "%s = %s",
+                                  $field,
+                                  self::$instance->quote($val));
           continue;
         }
         else if (count($value) == 3) 
         {
           list($field, $op, $val) = $value;
-          $this->where .= "{$field} {$this->operator($op)} {$this->db->quote($val)}";
+          self::$where .= sprintf(
+                                  "%s %s %s",
+                                  $field,
+                                  self::operator($op),
+                                  self::$instance->quote($val));
           continue;
         }
       }
-      return $this;
+      return self;
     }
 
-    public function where(...$args)
+    public static function where(...$args)
     {
-      $this->parse_args($args);
+      self::parse_args($args);
 
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
-      return $this->__where($args);
+      return self::__where($args);
     }
 
-    public function orWhere(...$args)
+    public static function orWhere(...$args)
     {
-      $this->parse_args($args);
+      self::parse_args($args);
 
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
 
-      return $this->__where($args);
+      return self::__where($args);
     }
 
-    protected function __between(string $field, array $between, bool $not=false)
+    protected static function __between(string $field, array $between, bool $not=false)
     {
       $not = $not ? "NOT" : "";
-      $this->where .= "{$field} {$not} BETWEEN {$between[0]} AND {$between[1]}";
-      return $this;
+      self::$where .= "{$field} {$not} BETWEEN {$between[0]} AND {$between[1]}";
+      return self;
     }
 
-    public function whereBetween(string $field, array $between) 
+    public static function whereBetween(string $field, array $between) 
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
 
-      return $this->__between($field, $between);
+      return self::__between($field, $between);
     }
     
-    public function orWhereBetween(string $field, array $between) 
+    public static function orWhereBetween(string $field, array $between) 
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
 
-      return $this->__between($field, $between);
+      return self::__between($field, $between);
     }
     
-    public function whereNotBetween(string $field, array $between)
+    public static function whereNotBetween(string $field, array $between)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
 
-      return $this->__between($field, $between, true);
+      return self::__between($field, $between, true);
     }
 
-    public function orWhereNotBetween(string $field, array $between)
+    public static function orWhereNotBetween(string $field, array $between)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
 
-      return $this->__between($field, $between, true);
+      return self::__between($field, $between, true);
     }
 
-    protected function __whereIn(string $field, array $in, bool $not=false) 
+    protected static function __whereIn(string $field, array $in, bool $not=false) 
     {
       $not = $not ? "NOT" : "";
       $in = implode(",", $in);
-      $this->where .= "{$field} {$not} IN ({$in})";
+      self::$where .= "{$field} {$not} IN ({$in})";
     }
     
-    public function whereIn(string $field, array $in)
+    public static function whereIn(string $field, array $in)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
       
-      return $this->__whereIn($field, $in);
+      return self::__whereIn($field, $in);
     }
     
-    public function orWhereIn(string $field, array $in)
+    public static function orWhereIn(string $field, array $in)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
       
-      return $this->__whereIn($field, $in);
+      return self::__whereIn($field, $in);
     }
 
-    public function whereNotIn(string $field, array $in)
+    public static function whereNotIn(string $field, array $in)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
       
-      return $this->__whereIn($field, $in, true);
+      return self::__whereIn($field, $in, true);
     }
     
-    public function orWhereNotIn(string $field, array $in)
+    public static function orWhereNotIn(string $field, array $in)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
       
-      return $this->__whereIn($field, $in, true);
+      return self::__whereIn($field, $in, true);
     }
 
-    protected function __whereNull(string $field, bool $not=false)
+    protected static function __whereNull(string $field, bool $not=false)
     {
       $not = $not ? "NOT" : "";
-      $this->where .= "{$field} IS {$not} NULL";
+      self::$where .= "{$field} IS {$not} NULL";
     }
 
-    public function whereNull(string $field) 
+    public static function whereNull(string $field) 
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
 
-      return $this->__whereNull($field);
+      return self::__whereNull($field);
     }
 
-    public function orWhereNull(string $field)
+    public static function orWhereNull(string $field)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
 
-      return $this->__whereNull($field);
+      return self::__whereNull($field);
     }
 
-    public function whereNotNull(string $field)
+    public static function whereNotNull(string $field)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
 
-      return $this->__whereNull($field, true);
+      return self::__whereNull($field, true);
     }
 
-    public function orWhereNotNull(string $field)
+    public static function orWhereNotNull(string $field)
     {
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
 
-      return $this->__whereNull($field, true);
+      return self::__whereNull($field, true);
     }
 
-    protected function __whereColumn($args) 
+    protected static function __whereColumn($args) 
     {
       foreach($args as $key => $value) 
       {
         if ($key > 0 && $key < count($args))
         {
-          $this->addAnd($this->where);
+          self::addAnd(self::$where);
         }
 
         if (count($value) == 2)
         {
           list($field, $val) = $value;
-          $this->where .= "{$field} = {$val}";
+          self::$where .= "{$field} = {$val}";
           continue;
         }
         else if (count($value) == 3) 
         {
           list($field, $op, $field) = $value;
-          $this->where .= "{$field} {$this->operator($op)} {$field}";
+          self::$where .= sprintf(
+                                  "%s %s %s",
+                                  $field,
+                                  self::operator($op),
+                                  $field
+          );
           continue;
         }
       }
 
-      return $this;
+      return self;
     }
 
-		public function whereColumn(...$args)
+		public static function whereColumn(...$args)
 		{
-      $this->parse_args($args);
+      self::parse_args($args);
 
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
       
-      return $this->__whereColumn($args);
+      return self::__whereColumn($args);
     }
     
-    public function orWhereColumn(...$args)
+    public static function orWhereColumn(...$args)
     {
-      $this->parse_args($args);
+      self::parse_args($args);
 
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addOr($this->where);
+        self::addOr(self::$where);
       }
       
-      return $this->__whereColumn($args);
+      return self::__whereColumn($args);
     }
 
-		public function whereTime()
+		public static function whereTime()
 		{
 
 		}
 
-		public function whereDay()
+		public static function whereDay()
 		{
 
 		}
 
-		public function whereMonth() 
+		public static function whereMonth() 
 		{
 
 		}
 
-		public function whereYear() 
+		public static function whereYear() 
 		{
 
 		}
 
-		public function whereDate() 
+		public static function whereDate(string $date) 
 		{
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $this->addAnd($this->where);
+        self::addAnd(self::$where);
       }
 
       $date = date("Y-m-d", strtotime($date)); 
 
-      // $this->where .= ""
+      // self::$where .= ""
 
-      return $this;
+      return self;
 		}
 
-		public function whereRaw() 
+		public static function whereRaw() 
 		{
 
 		}
 
-		public function having()
+		public static function having()
 		{
 
 		}

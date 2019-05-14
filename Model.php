@@ -9,5 +9,5 @@
 
   class Model extends Builder
   {
-
+    
   }

@@ -26,24 +26,23 @@
     use Update; 
     use Delete;
 
-    public $instance;
+    public static $instance;
 
-    protected $sql;
-    protected $select;
-    protected $skip;
-    protected $limit;
-    protected $orderBy;
-    protected $where;
-    protected $fields = [];
-    protected $colonFields = [];
-    protected $values = [];
-    protected $db;
-    protected $types;
-    protected $omit;
-    protected $as;
-    protected $count;
+    protected static $sql;
+    protected static $select;
+    protected static $skip;
+    protected static $limit;
+    protected static $orderBy;
+    protected static $where;
+    protected static $fields = [];
+    protected static $colonFields = [];
+    protected static $values = [];
+    protected static $types;
+    protected static $omit;
+    protected static $as;
+    protected static $count;
 
-    public $operators = [
+    public static $operators = [
       '=', '<', '>', '<=', '>=', '<>', '!=', '<=>',
       'like', 'like binary', 'not like', 'ilike',
       '&', '|', '^', '<<', '>>',
@@ -57,14 +56,14 @@
      */
     public static function setInstanceDatabase(ManagerInterface $instance)
     {
-      static::$instance = $instance;
+      self::$instance = $instance;
     }
 
 
     /**
      * Add to sentence sql the property `AND`
      */
-    protected function addAnd(&$sql)
+    protected static function addAnd(&$sql)
     {
       return $sql .= " AND ";
     }
@@ -72,7 +71,7 @@
     /**
      * Add to sentence sql the property `OR`
      */
-    protected function addOr(&$sql)
+    protected static function addOr(&$sql)
     {
       return $sql .= " OR ";
     }
@@ -80,7 +79,7 @@
     /**
      * Add to sentence sql the property `NOT`
      */
-    protected function addNot(&$sql)
+    protected static function addNot(&$sql)
     {
       return $sql .= " NOT ";
     }
@@ -88,12 +87,24 @@
     /**
      * Evaluate a operator, if is valid.
      */
-    protected function invalidOperator($operator) 
+    protected static function invalidOperator($operator) 
     {
-      return !in_array(strtolower($operator), $this->operators, true);
+      return !in_array(strtolower($operator), self::$operators, true);
     }
 
-    protected function parse_args(&$in)
+    protected static function operator($operator)
+    {
+      if (self::invalidOperator($operator))
+      {
+        return $operator;
+      }
+      else 
+      {
+        throw new Exceptions("Operator invalid $operator");
+      }
+    }
+
+    protected static function parse_args(&$in)
     {
       if (key_exists(0, $in) 
             && (count($in) <= 1) 
@@ -117,82 +128,93 @@
       return $in = [$out];
     }
 
-    protected function prepare_select()
+    protected static function prepare_select()
     {
       $select = null;
       $where = null;
 
-      if (!empty($this->select))
+      if (!empty(self::$select))
       {
-        $select = $this->select;
+        $select = self::$select;
       }
-      $this->select = $select ?: "*";
+      self::$select = $select ?: "*";
 
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $where = $this->where;
+        $where = self::$where;
       }
-      $this->where = $where ? " WHERE " . $where : "";
+      self::$where = $where ? " WHERE {$where}" : "";
       
-      $this->sql = " {$this->select} FROM {$this->table} {$this->as} {$this->where} {$this->orderBy} {$this->limit} {$this->skip}";
+      self::$sql = sprintf(
+                            " %s FROM %s %s %s %s %s %s", 
+                            self::$select, 
+                            self::$table, 
+                            self::$as, 
+                            self::$where, 
+                            self::$orderBy, 
+                            self::$limit, 
+                            self::$skip);
     }
     
-    protected function prepare_insert()
+    protected static function prepare_insert()
     {
-      $this->fields = implode(",", $this->fields);
-      $this->colonFields = implode(",", $this->colonFields);
-      $this->sql = " {$this->table} {$this->as} ({$this->fields}) VALUES ({$this->colonFields}) ";
-    }
-
-    protected function prepare_insertMany()
-    {
-      $this->fields = implode(",", $this->fields);
-      $this->colonFields = implode(",", $this->colonFields);
-      $this->sql = " {$this->table} {$this->as} ({$this->fields}) VALUES ({$this->colonFields}) ";
+      self::$fields = implode(",", self::$fields);
+      self::$colonFields = implode(",", self::$colonFields);
+      self::$sql = sprintf(
+                            "%s %s (%s) VALUES (%s)",
+                            self::$table,
+                            self::$as,
+                            self::$fields,
+                            self::$colonFields);
     }
     
-    protected function prepare_update()
+    protected static function prepare_update()
     {
       $where = null;
-      $this->fields = implode(",", $this->fields);
+      self::$fields = implode(",", self::$fields);
 
-      if (!empty($this->where))
+      if (!empty(self::$where))
       {
-        $where = $this->where;
+        $where = self::$where;
       }
-      $this->where = $where ? " WHERE " . $where : "";
+      self::$where = $where ? " WHERE {$where}" : "";
 
-      $this->sql = " {$this->table} {$this->as} SET {$this->fields} {$this->where}";
+      self::$sql = sprintf(
+                            "%s %s SET %s %s",
+                            self::$table,
+                            self::$as,
+                            self::$fields,
+                            self::$where);
     }
 
-    protected function prepare_delete() 
+    protected static function prepare_delete() 
     {
 
     }
 
-    protected function autoRun()
+    protected static function autoRun()
     {
       $response = null;
       
-      switch($this->types)
+      switch(self::$types)
       {
         case 0:
-          $this->prepare_select();
+          self::prepare_select();
           
-          if ($this->omit)
+          if (self::$omit)
           {
             break;
           }
           
-          if ($this->count) {
-            $response = $this->db->__select($this)->fetchColumn();
+          if (self::$count) {
+            $response = self::$instance->__select(self)->fetchColumn();
             $response = (object) array(
               'count' => $response
             ); 
             break;
           }
 
-          $response = $this->db->__select($this)->fetch();
+          $response = self::$instance->__select(self)->fetch();
           
           if (!$response)
           {
@@ -205,14 +227,14 @@
             'item' => $response);
           break;
         case 1:
-          $this->prepare_select();
+          self::prepare_select();
           
-          if ($this->omit)
+          if (self::$omit)
           {
             break;
           }
           
-          $response = $this->db->__select($this);
+          $response = self::$instance->__select(self);
           if (!$response->rowCount() > 0)
           {
             $response = (object) array(
@@ -224,72 +246,72 @@
                       'count' => $response->rowCount());
           break;
         case 2:
-          $this->prepare_insert();
+          self::prepare_insert();
 
-          if ($this->omit)
+          if (self::$omit)
           {
             break;
           }
           
-          $response = $this->db->__insert($this);
+          $response = self::$instance->__insert(self);
           $response = (object) array(
             'id' => $response);
           break;
         case 3:
-          $this->prepare_insertMany();
+          self::prepare_insert();
           
-          if ($this->omit)
+          if (self::$omit)
           {
             break;
           }
           
-          $response = $this->db->__insertMany($this);
+          $response = self::$instance->__insertMany(self);
           $response = (object) array(
             'id' => $response);
           break;
         case 4:
-          $this->prepare_update();
+          self::prepare_update();
           
-          if ($this->omit)
+          if (self::$omit)
           {
             break;
           }
           
-          $response = $this->db->__update($this);
+          $response = self::$instance->__update(self);
           break;
         case 5:
-          $this->prepare_delete();
+          self::prepare_delete();
           
-          if ($this->omit)
+          if (self::$omit)
           {
             break;
           }
           
-          $response = $this->db->__delete($this);
+          $response = self::$instance->__delete(self);
           $response = (object) array(
             'id'
           );
           break;
       }
 
-      self::resetProperties($this);
+      self::resetProperties();
       
       return $response;
     }
 
-    public static function resetProperties(&$self)
+    public static function resetProperties()
     {
-      $self->sql = null;
-      $self->select = null;
-      $self->skip = null;
-      $self->limit = null;
-      $self->orderBy = null;
-      $self->where = null;
-      $self->fields = [];
-      $self->colonFields = [];
-      $self->values = [];
-      $self->types = null;
-      $self->as = null;
-      $self->count = null;
+      self::$sql = null;
+      self::$select = null;
+      self::$skip = null;
+      self::$limit = null;
+      self::$orderBy = null;
+      self::$where = null;
+      self::$fields = [];
+      self::$colonFields = [];
+      self::$values = [];
+      self::$types = null;
+      self::$as = null;
+      self::$count = null;
     }
   }
