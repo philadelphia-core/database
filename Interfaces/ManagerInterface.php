@@ -8,5 +8,5 @@
     /**
      * Set settings to PDO for connected to Database.
      */
-    public function __construct(SettingsInterface $settings);
+    public function __construct();
   }
