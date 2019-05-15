@@ -65,6 +65,25 @@
 			return (empty($this->first()) ? true : false);
 		}
 
+		public function find(?array $args) 
+		{
+			$Ids = $args[0];
+
+			if(!is_string($Ids) && is_array($Ids) && !empty($Ids))
+			{
+				foreach($Ids as $id)
+				{
+					$this->orWhere('id', $id);
+				}
+			}
+			else 
+			{
+				$this->where('id', $Ids);
+			}
+
+			return $this->get();
+		}
+
 		public function get() 
 		{
 			$this->types = 1;
@@ -76,4 +95,5 @@
 			$this->types = 0;
 			return $this->autoRun();
 		}
+
 	}
