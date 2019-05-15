@@ -237,7 +237,8 @@
 		{
 			try
 			{
-				$this->sql = "SELECT" . $builder::$sql;
+				$this->sql = "SELECT" . $builder->sql;
+				// var_dump($this->sql);
 				return $this->runQuery();
 			}
 			catch(PDOException $ex)
@@ -261,8 +262,8 @@
 		{
 			try 
 			{
-				$this->sql = "INSERT INTO" . $builder::$sql;
-				$this->values= $builder::$values;
+				$this->sql = "INSERT INTO" . $builder->ql;
+				$this->values= $builder->values;
 				$statement = $this->prepare($this->sql);
 				return $this->runExecute($statement, true);
 			}
@@ -287,8 +288,8 @@
 		{
 			try 
 			{
-				$this->sql = "INSERT IGNORE INTO" . $builder::$sql;
-				$this->values = $builder::$values;
+				$this->sql = "INSERT IGNORE INTO" . $builder->sql;
+				$this->values = $builder->values;
 				$statement = $this->prepare($this->sql);
 				return $this->runExecuteTransation($statement, true);
 			}
@@ -313,9 +314,9 @@
 		{
 			try 
 			{
-				$this->sql = "UPDATE" . $builder::$sql;
+				$this->sql = "UPDATE" . $builder->sql;
 				$this->values = $builder->values;
-				$statement = $this->prepare($this::$sql);
+				$statement = $this->prepare($this->sql);
 				return $this->runExecute($statement, false, true);
 			}
 			catch(PDOException $ex)
@@ -340,8 +341,8 @@
 		{
 			try
 			{
-				$this->sql = "DELETE" . $builder::$sql;
-				$this->values = $builder::values();
+				$this->sql = "DELETE" . $builder->sql;
+				$this->values = $builder->values;
 
 				if (empty($this->values))
 				{

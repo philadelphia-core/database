@@ -19,28 +19,32 @@
   class Builder implements BuilderInterface
   {
     use Where; 
-    use OrderBy; 
-    use Pipeline;
+    // use OrderBy; 
+    // use Pipeline;
     use Select; 
-    use Insert; 
-    use Update; 
-    use Delete;
+    // use Insert; 
+    // use Update; 
+    // use Delete;
 
-    public static $instance;
+    public static $DBInstance;
+    protected static $instance;
+    protected static $__table;
 
-    protected static $sql;
-    protected static $select;
-    protected static $skip;
-    protected static $limit;
-    protected static $orderBy;
-    protected static $where;
-    protected static $fields = [];
-    protected static $colonFields = [];
-    protected static $values = [];
-    protected static $types;
-    protected static $omit;
-    protected static $as;
-    protected static $count;
+    protected $dbh;
+    protected $select;
+    protected $skip;
+    protected $limit;
+    protected $orderBy;
+    protected $where;
+    protected $fields = [];
+    protected $colonFields = [];
+    protected $types;
+    protected $omit;
+    protected $as;
+    protected $count;
+    
+    public $sql;
+    public $values = [];
 
     public static $operators = [
       '=', '<', '>', '<=', '>=', '<>', '!=', '<=>',
@@ -56,14 +60,27 @@
      */
     public static function setInstanceDatabase(ManagerInterface $instance)
     {
-      self::$instance = $instance;
+      self::$DBInstance = $instance;
     }
 
+    public function __construct()
+    {
+      $this->dbh = self::$DBInstance;
+      
+      if (!isset($this->table))
+      {
+        $this->table = self::$__table;
+      } 
+      else 
+      {
+        self::$__table = $this->table;
+      }
+    }
 
     /**
      * Add to sentence sql the property `AND`
      */
-    protected static function addAnd(&$sql)
+    protected function addAnd(&$sql)
     {
       return $sql .= " AND ";
     }
@@ -71,7 +88,7 @@
     /**
      * Add to sentence sql the property `OR`
      */
-    protected static function addOr(&$sql)
+    protected function addOr(&$sql)
     {
       return $sql .= " OR ";
     }
@@ -79,7 +96,7 @@
     /**
      * Add to sentence sql the property `NOT`
      */
-    protected static function addNot(&$sql)
+    protected function addNot(&$sql)
     {
       return $sql .= " NOT ";
     }
@@ -87,14 +104,14 @@
     /**
      * Evaluate a operator, if is valid.
      */
-    protected static function invalidOperator($operator) 
+    protected function invalidOperator($operator) 
     {
-      return !in_array(strtolower($operator), self::$operators, true);
+      return !in_array(strtolower($operator), $this->operators, true);
     }
 
-    protected static function operator($operator)
+    protected function operator($operator)
     {
-      if (self::invalidOperator($operator))
+      if ($this->invalidOperator($operator))
       {
         return $operator;
       }
@@ -104,7 +121,7 @@
       }
     }
 
-    protected static function parse_args(&$in)
+    protected function parse_args(&$in)
     {
       if (key_exists(0, $in) 
             && (count($in) <= 1) 
@@ -128,93 +145,93 @@
       return $in = [$out];
     }
 
-    protected static function prepare_select()
+    protected function prepare_select()
     {
       $select = null;
       $where = null;
 
-      if (!empty(self::$select))
+      if (!empty($this->select))
       {
-        $select = self::$select;
+        $select = $this->select;
       }
-      self::$select = $select ?: "*";
+      $this->select = $select ?: "*";
 
-      if (!empty(self::$where))
+      if (!empty($this->where))
       {
-        $where = self::$where;
+        $where = $this->where;
       }
-      self::$where = $where ? " WHERE {$where}" : "";
-      
-      self::$sql = sprintf(
+
+      $this->where = $where ? " WHERE {$where}" : "";
+      $this->sql = sprintf(
                             " %s FROM %s %s %s %s %s %s", 
-                            self::$select, 
-                            self::$table, 
-                            self::$as, 
-                            self::$where, 
-                            self::$orderBy, 
-                            self::$limit, 
-                            self::$skip);
+                            $this->select, 
+                            $this->table, 
+                            $this->as, 
+                            $this->where, 
+                            $this->orderBy, 
+                            $this->limit, 
+                            $this->skip);
     }
     
-    protected static function prepare_insert()
+    protected function prepare_insert()
     {
-      self::$fields = implode(",", self::$fields);
-      self::$colonFields = implode(",", self::$colonFields);
-      self::$sql = sprintf(
+      $this->fields = implode(",", $this->fields);
+      $this->colonFields = implode(",", $this->colonFields);
+      $this->sql = sprintf(
                             "%s %s (%s) VALUES (%s)",
-                            self::$table,
-                            self::$as,
-                            self::$fields,
-                            self::$colonFields);
+                            $this->table,
+                            $this->as,
+                            $this->fields,
+                            $this->colonFields);
     }
     
-    protected static function prepare_update()
+    protected function prepare_update()
     {
       $where = null;
-      self::$fields = implode(",", self::$fields);
+      $this->fields = implode(",", $this->fields);
 
-      if (!empty(self::$where))
+      if (!empty($this->where))
       {
-        $where = self::$where;
+        $where = $this->where;
       }
-      self::$where = $where ? " WHERE {$where}" : "";
+      $this->where = $where ? " WHERE {$where}" : "";
 
-      self::$sql = sprintf(
+      $this->sql = sprintf(
                             "%s %s SET %s %s",
-                            self::$table,
-                            self::$as,
-                            self::$fields,
-                            self::$where);
+                            $this->table,
+                            $this->as,
+                            $this->fields,
+                            $this->where);
     }
 
-    protected static function prepare_delete() 
+    protected function prepare_delete() 
     {
 
     }
 
-    protected static function autoRun()
+    protected function autoRun()
     {
       $response = null;
       
-      switch(self::$types)
+      switch($this->types)
       {
         case 0:
-          self::prepare_select();
+          $this->prepare_select();
           
-          if (self::$omit)
+          if ($this->omit)
           {
             break;
           }
           
-          if (self::$count) {
-            $response = self::$instance->__select(self)->fetchColumn();
+          if ($this->count) {
+            $response = $this->dbh->__select($this)->fetchColumn();
             $response = (object) array(
               'count' => $response
             ); 
             break;
           }
 
-          $response = self::$instance->__select(self)->fetch();
+          $response = $this->dbh->__select($this)->fetch();
           
           if (!$response)
           {
@@ -227,14 +244,14 @@
             'item' => $response);
           break;
         case 1:
-          self::prepare_select();
+          $this->prepare_select();
           
-          if (self::$omit)
+          if ($this->omit)
           {
             break;
           }
           
-          $response = self::$instance->__select(self);
+          $response = $this->dbh->__select($this);
           if (!$response->rowCount() > 0)
           {
             $response = (object) array(
@@ -246,72 +263,72 @@
                       'count' => $response->rowCount());
           break;
         case 2:
-          self::prepare_insert();
+          $this->prepare_insert();
 
-          if (self::$omit)
+          if ($this->omit)
           {
             break;
           }
           
-          $response = self::$instance->__insert(self);
+          $response = $this->dbh->__insert($this);
           $response = (object) array(
             'id' => $response);
           break;
         case 3:
-          self::prepare_insert();
+          $this->prepare_insert();
           
-          if (self::$omit)
+          if ($this->omit)
           {
             break;
           }
           
-          $response = self::$instance->__insertMany(self);
+          $response = $this->dbh->__insertMany($this);
           $response = (object) array(
             'id' => $response);
           break;
         case 4:
-          self::prepare_update();
+          $this->prepare_update();
           
-          if (self::$omit)
+          if ($this->omit)
           {
             break;
           }
           
-          $response = self::$instance->__update(self);
+          $response = $this->dbh->__update($this);
           break;
         case 5:
-          self::prepare_delete();
+          $this->prepare_delete();
           
-          if (self::$omit)
+          if ($this->omit)
           {
             break;
           }
           
-          $response = self::$instance->__delete(self);
+          $response = $this->dbh->__delete($this);
           $response = (object) array(
             'id'
           );
           break;
       }
 
-      self::resetProperties();
+      self::resetProperties($this);
       
       return $response;
     }
 
-    public static function resetProperties()
+    public static function resetProperties(&$self)
     {
-      self::$sql = null;
-      self::$select = null;
-      self::$skip = null;
-      self::$limit = null;
-      self::$orderBy = null;
-      self::$where = null;
-      self::$fields = [];
-      self::$colonFields = [];
-      self::$values = [];
-      self::$types = null;
-      self::$as = null;
-      self::$count = null;
+      $self->sql          = null;
+      $self->select       = null;
+      $self->skip         = null;
+      $self->limit        = null;
+      $self->orderBy      = null;
+      $self->where        = null;
+      $self->fields       = [];
+      $self->colonFields  = [];
+      $self->values       = [];
+      $self->types        = null;
+      $self->as           = null;
+      $self->count        = null;
     }
   }
