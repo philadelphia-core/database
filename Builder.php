@@ -26,21 +26,21 @@
     use Update; 
     use Delete;
 
-    public static $instance;
+    public $instance;
 
-    protected static $sql;
-    protected static $select;
-    protected static $skip;
-    protected static $limit;
-    protected static $orderBy;
-    protected static $where;
-    protected static $fields = [];
-    protected static $colonFields = [];
-    protected static $values = [];
-    protected static $types;
-    protected static $omit;
-    protected static $as;
-    protected static $count;
+    protected $sql;
+    protected $select;
+    protected $skip;
+    protected $limit;
+    protected $orderBy;
+    protected $where;
+    protected $fields = [];
+    protected $colonFields = [];
+    protected $values = [];
+    protected $types;
+    protected $omit;
+    protected $as;
+    protected $count;
 
     public static $operators = [
       '=', '<', '>', '<=', '>=', '<>', '!=', '<=>',

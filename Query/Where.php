@@ -6,18 +6,18 @@
 
 	trait Where
 	{
-		protected static function __where($args) {
+		protected function __where($args) {
       foreach($args as $key => $value) 
       {
         if ($key > 0 && $key < count($args))
         {
-          self::addAnd(self::$where);
+          $this->addAnd($this->where);
         }
         
         if (count($value) == 2)
         {
           list($field, $val) = $value;
-          self::$where .= sprintf(
+          $this->where .= sprintf(
                                   "%s = %s",
                                   $field,
                                   self::$instance->quote($val));
