@@ -14,7 +14,7 @@
         {
           $this->addAnd($this->where);
         }
-        var_dump($value);
+
         if (count($value) == 2)
         {
           list($field, $val) = $value;

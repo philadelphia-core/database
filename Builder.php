@@ -123,14 +123,20 @@
 
     protected function parse_args(&$in)
     {
-      if (key_exists(0, $in) 
-            && (count($in) <= 1) 
-              && is_array($in[0]))
+      $curr = $in;
+      $out;
+      while(true)
       {
-        return $in;
+        if (count($curr) === 1)
+        {
+          $curr = $curr[0];
+          continue;
+        }
+
+        $out = [array_values($curr)];
+        break;
       }
-      $out = array_values($in);
-      
+
       if (count($out) > 3) {
         throw new Exceptions("
                           Just can only pass 2 or 3 parameters for the pipeline `where`
