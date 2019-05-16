@@ -127,9 +127,8 @@
             && (count($in) <= 1) 
               && is_array($in[0]))
       {
-        return $in = $in[0];
+        return $in;
       }
-
       $out = array_values($in);
       
       if (count($out) > 3) {
@@ -142,7 +141,7 @@
                           `");
       }
       
-      return $in = [$out];
+      return $in = $out;
     }
 
     protected function prepare_select()
