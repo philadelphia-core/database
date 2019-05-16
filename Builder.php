@@ -2,6 +2,7 @@
 
   namespace PhiladelPhia\Database;
 
+  use PDO;
   use PhiladelPhia\App\Exceptions;
   use PhiladelPhia\Database\Interfaces\ManagerInterface;
   use PhiladelPhia\Database\Interfaces\BuilderInterface;
@@ -19,12 +20,12 @@
   class Builder implements BuilderInterface
   {
     use Where; 
-    // use OrderBy; 
-    // use Pipeline;
+    use OrderBy; 
+    use Pipeline;
     use Select; 
-    // use Insert; 
-    // use Update; 
-    // use Delete;
+    use Insert; 
+    use Update; 
+    use Delete;
 
     public static $DBInstance;
     protected static $instance;
@@ -39,14 +40,13 @@
     protected $fields = [];
     protected $colonFields = [];
     protected $types;
-    protected $omit;
     protected $as;
     protected $count;
     
     public $sql;
     public $values = [];
 
-    public static $operators = [
+    public $operators = [
       '=', '<', '>', '<=', '>=', '<>', '!=', '<=>',
       'like', 'like binary', 'not like', 'ilike',
       '&', '|', '^', '<<', '>>',
@@ -106,7 +106,7 @@
      */
     protected function invalidOperator($operator) 
     {
-      return !in_array(strtolower($operator), $this->operators, true);
+      return in_array(strtolower($operator), $this->operators, true);
     }
 
     protected function operator($operator)
@@ -218,57 +218,44 @@
         case 0:
           $this->prepare_select();
           
-          if ($this->omit)
-          {
-            break;
-          }
-          
           if ($this->count) {
             $response = $this->dbh->__select($this)->fetchColumn();
-            $response = (object) array(
-              'count' => $response
-            ); 
-            break;
-          }
-
-          $response = $this->dbh->__select($this)->fetch();
-          
-          if (!$response)
-          {
-            $response = (object) array(
-              'item' => array());
-            break;
-          }
-          
-          $response = (object) array(
-            'item' => $response);
-          break;
-        case 1:
-          $this->prepare_select();
-          
-          if ($this->omit)
-          {
             break;
           }
           
           $response = $this->dbh->__select($this);
-          if (!$response->rowCount() > 0)
+          if (!empty($this->model))
           {
-            $response = (object) array(
-              'items' => [],
-              'count' => 0);
+            $response->setFetchMode(PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, $this->model, [$this->table]);
           }
-          $response = (object) array(
-                      'items' => $response->fetchAll(),
-                      'count' => $response->rowCount());
+          
+          $response = $response->fetch();
+
+          if (!$response)
+          {
+            $response = array();
+            break;
+          }
+          break;
+        case 1:
+          $this->prepare_select();
+          
+          $response = $this->dbh->__select($this); 
+
+          if (!($response->rowCount() > 0))
+          {
+            $response = (object) array();
+          }
+
+          if (!empty($this->model))
+          {
+            $response->setFetchMode(PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, $this->model, [$this->table]);
+          }
+          
+          $response = $response->fetchAll();
           break;
         case 2:
           $this->prepare_insert();
-
-          if ($this->omit)
-          {
-            break;
-          }
           
           $response = $this->dbh->__insert($this);
           $response = (object) array(
@@ -277,11 +264,6 @@
         case 3:
           $this->prepare_insert();
           
-          if ($this->omit)
-          {
-            break;
-          }
-          
           $response = $this->dbh->__insertMany($this);
           $response = (object) array(
             'id' => $response);
@@ -289,20 +271,10 @@
         case 4:
           $this->prepare_update();
           
-          if ($this->omit)
-          {
-            break;
-          }
-          
           $response = $this->dbh->__update($this);
           break;
         case 5:
           $this->prepare_delete();
-          
-          if ($this->omit)
-          {
-            break;
-          }
           
           $response = $this->dbh->__delete($this);
           $response = (object) array(

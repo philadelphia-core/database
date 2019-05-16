@@ -12,16 +12,29 @@
   {
     protected static $builder;
 
-    function __construct()
+    function __construct($table = null)
     {
       self::$builder = new Builder;
-      self::$builder::$DBInstance->setFetchMode(PDO::FETCH_CLASS, 'Model');
-      self::$builder->table = $this->table;
+      if (!empty($table))
+      {
+        self::$builder->table = $table;
+      }
+      else 
+      {
+        self::$builder->table = $this->table;
+      }
     }
     
     public static function __callStatic($name, $arguments)
     {
       $builder = self::$builder;
+      $builder->model = self::class;
+
       return $builder->{$name}($arguments);
+    }
+
+    public function save() 
+    {
+      
     }
   }
