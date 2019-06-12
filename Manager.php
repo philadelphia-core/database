@@ -4,7 +4,7 @@
 
   use PDO;
   use PhiladelPhia\App\Exceptions;
-  use PhiladelPhia\App\Settings;
+  use PhiladelPhia\App;
 	use PhiladelPhia\Database\Interfaces\ManagerInterface;
 	use PhiladelPhia\Database\Builder;
   use PhiladelPhia\Database\Interfaces\BuilderInterface as IBuilder;
@@ -27,18 +27,17 @@
      * Constructor, run connection with database
      * 
      */
-    public function __construct($settings = null)
+    public function __construct()
     {
-			$settings = new Settings($settings);
-      $this->driver = $settings->get('database.driver');
-      $this->host   = $settings->get('database.host');
-      $this->dbname = $settings->get('database.dbname');
-      $this->username = $settings->get('database.username');
-      $this->password = $settings->get('database.password');
-			$this->chatset  = $settings->get('database.chatset');
+      $this->driver = DB['driver'];
+      $this->host   = DB['host'];
+      $this->dbname = DB['dbname'];
+      $this->username = DB['username'];
+      $this->password = DB['password'];
+			$this->chatset  = DB['chatset'];
 			
 			// Set options for connection with PDO.
-      $this->setConfig($settings);
+      $this->setConfig();
 
 			$this->__connect();
 
@@ -75,11 +74,10 @@
 		 * 
 		 * @param ISettings $settings.
 		 */
-    public function setConfig($settings)
+    public function setConfig()
     {
-      $persistent = $settings->get('database.persistent') ? true : false;
       $this->options = array(
-				PDO::ATTR_PERSISTENT 		    => $persistent,
+				PDO::ATTR_PERSISTENT 		    => DB['persistent'],
 				PDO::ATTR_ERRMODE    		    => PDO::ERRMODE_EXCEPTION,
 				PDO::ATTR_DEFAULT_FETCH_MODE 	=> PDO::FETCH_OBJ,
 				PDO::MYSQL_ATTR_FOUND_ROWS 		=> true 
