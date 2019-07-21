@@ -10,12 +10,12 @@
 		{
 			foreach($body as $field => $value)
 			{
-				$this->colonFields[] = ":$field";
+				$this->colonFields[] = ":{$field}";
 				$this->fields[] = $field;
 			}
 
 			$this->values = $body;
-			$this->types = 2;
+			$this->types = self::INSERT;
 			return $this->autoRun();
 		}
 
@@ -40,7 +40,7 @@
 			$colonFields = [];
 			foreach($fields as $field) 
 			{
-				$colonFields[] = ":$field"; 
+				$colonFields[] = ":{$field}"; 
 			}
 
 			$values = [];
@@ -52,7 +52,7 @@
 				{
 					foreach($merge as $m) 
 					{
-						$row["$m"] = null;
+						$row["{$m}"] = null;
 					}
 				}
 				$values[] = $row;
@@ -61,8 +61,8 @@
 			$this->fields = $fields;
 			$this->colonFields = $colonFields;
 			$this->values = $values;
-			$this->types = 3;
-			return $this->autoRun();
+			$this->types = self::INSERT;
+			return $this->autoRun(true);
 		}
 
 		public function insert(array $body)

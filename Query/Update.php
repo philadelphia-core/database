@@ -11,7 +11,7 @@
 				$this->fields[] = $field . "=:" . $field;
 			}
 			$this->values = $body;
-			$this->types = 4;
+			$this->types = self::UPDATE;
 			return $this->autoRun();
 		}
 
@@ -38,15 +38,5 @@
 			}
 
 			return $response;
-			// if (is_bool($response))
-			// {
-			// 	return (object) array(
-			// 		'id' => 
-			// 	);
-			// }
-			// else 
-			// {
-
-			// }
 		}
 	}

@@ -12,33 +12,63 @@
   {
     protected static $builder;
 
-    function __construct($table = null)
+    function __construct()
     {
       self::$builder = new Builder;
-      if (!empty($table))
-      {
-        self::$builder->table = $table;
-      }
-      else 
-      {
-        self::$builder->table = $this->table;
-      }
+      self::$builder->model = get_class($this);
+      self::$builder->table  = $this->table ?? get_class($this);
     }
     
     public static function __callStatic($name, $arguments)
     {
-      $builder = self::$builder;
-      $builder->model = self::class;
+      if (property_exists(self, $name))
+      {
+        return self::$name($arguments);
+      }
 
-      return $builder->{$name}($arguments);
+      return self::$builder->{$name}($arguments);
+    }
+
+    public static function find($id) 
+    {
+      
+    }
+
+    public static function create() 
+    {
+
+    }
+
+    public function fresh() 
+    {
+
+    }
+
+    public function refresh() 
+    {
+
+    }
+
+    public function fill() 
+    {
+
     }
 
     public function save() 
     {
-       
+      unset($this->table);
+
+      $array = (array)$this;
+      
     }
 
     public function delete() {
 
     }
+
+    public function destroy()
+    {
+
+    }
+
   }

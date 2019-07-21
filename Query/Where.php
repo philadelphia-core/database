@@ -287,8 +287,6 @@
 
       $date = date("Y-m-d", strtotime($date)); 
 
-      // self::$where .= ""
-
       return $this;
 		}
 

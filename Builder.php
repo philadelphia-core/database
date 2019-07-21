@@ -7,18 +7,23 @@
   use PhiladelPhia\Database\Interfaces\ManagerInterface;
   use PhiladelPhia\Database\Interfaces\BuilderInterface;
 
-  use PhiladelPhia\Database\Query\Where;
+  use PhiladelPhia\Database\Traits\Prepare;
+  use PhiladelPhia\Database\Traits\Run;
+
   use PhiladelPhia\Database\Query\OrderBy;
   use PhiladelPhia\Database\Query\Pipeline;
   use PhiladelPhia\Database\Query\Select;
   use PhiladelPhia\Database\Query\Insert;
   use PhiladelPhia\Database\Query\Update;
   use PhiladelPhia\Database\Query\Delete;
+  use PhiladelPhia\Database\Query\Where;
   
   use PhiladelPhia\Helpers\Util;
-  
+
   class Builder implements BuilderInterface
   {
+    use Prepare;
+    use Run;
     use Where; 
     use OrderBy; 
     use Pipeline;
@@ -26,6 +31,14 @@
     use Insert; 
     use Update; 
     use Delete;
+
+    const SELECT = 0;
+    const INSERT = 1;
+    const UPDATE = 2;
+    const DELETE = 3;
+    const TRUNCATE = 4;
+    const RAW = 5;
+  
 
     public static $DBInstance;
     protected static $instance;
@@ -54,6 +67,8 @@
       '~', '~*', '!~', '!~*', 'similar to',
       'not similar to', 'not ilike', '~~*', '!~~*',
     ];
+
+
 
     /**
      * Set instance Database
@@ -150,147 +165,27 @@
       return $in = $out;
     }
 
-    protected function prepare_select()
-    {
-      $select = null;
-      $where = null;
-
-      if (!empty($this->select))
-      {
-        $select = $this->select;
-      }
-      $this->select = $select ?: "*";
-
-      if (!empty($this->where))
-      {
-        $where = $this->where;
-      }
-
-      $this->where = $where ? " WHERE {$where}" : "";
-      $this->sql = sprintf(
-                            " %s FROM %s %s %s %s %s %s", 
-                            $this->select, 
-                            $this->table, 
-                            $this->as, 
-                            $this->where, 
-                            $this->orderBy, 
-                            $this->limit, 
-                            $this->skip);
-    }
-    
-    protected function prepare_insert()
-    {
-      $this->fields = implode(",", $this->fields);
-      $this->colonFields = implode(",", $this->colonFields);
-      $this->sql = sprintf(
-                            "%s %s (%s) VALUES (%s)",
-                            $this->table,
-                            $this->as,
-                            $this->fields,
-                            $this->colonFields);
-    }
-    
-    protected function prepare_update()
-    {
-      $where = null;
-      $this->fields = implode(",", $this->fields);
-
-      if (!empty($this->where))
-      {
-        $where = $this->where;
-      }
-      $this->where = $where ? " WHERE {$where}" : "";
-
-      $this->sql = sprintf(
-                            "%s %s SET %s %s",
-                            $this->table,
-                            $this->as,
-                            $this->fields,
-                            $this->where);
-    }
-
-    protected function prepare_delete() 
-    {
-
-    }
-
-    protected function autoRun()
-    {
-      $response = null;
-      
+    protected function autoRun(bool $many=false)
+    { 
       switch($this->types)
       {
-        case 0:
+        case self::SELECT:
           $this->prepare_select();
-          
-          if ($this->count) {
-            $response = $this->dbh->__select($this)->fetchColumn();
-            break;
-          }
-          
-          $response = $this->dbh->__select($this);
-          if (!empty($this->model))
-          {
-            $response->setFetchMode(PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, $this->model, [$this->table]);
-          }
-          
-          $response = $response->fetch();
-
-          if (!$response)
-          {
-            $response = array();
-            break;
-          }
-          break;
-        case 1:
-          $this->prepare_select();
-          
-          $response = $this->dbh->__select($this); 
-
-          if (!($response->rowCount() > 0))
-          {
-            $response = (object) array();
-          }
-
-          if (!empty($this->model))
-          {
-            $response->setFetchMode(PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, $this->model, [$this->table]);
-          }
-          
-          $response = $response->fetchAll();
-          break;
-        case 2:
+          return $this->run_select($many);
+        case self::INSERT:
           $this->prepare_insert();
-          
-          $response = $this->dbh->__insert($this);
-          $response = (object) array(
-            'id' => $response);
-          break;
-        case 3:
-          $this->prepare_insert();
-          
-          $response = $this->dbh->__insertMany($this);
-          $response = (object) array(
-            'id' => $response);
-          break;
-        case 4:
+          return $this->run_insert($many);
+        case self::UPDATE:
           $this->prepare_update();
-          
-          $response = $this->dbh->__update($this);
-          break;
-        case 5:
+          return $this->run_update();
+        case self::DELETE:
           $this->prepare_delete();
-          
-          $response = $this->dbh->__delete($this);
-          $response = (object) array(
-            'id'
-          );
-          break;
+          return $this->run_delete();
+        case self::TRUNCATE:
+          return;
+        case self::RAW:
+          return $this->dbh->__raw($this);
       }
-
-      self::resetProperties($this);
-      
-      return $response;
     }
 
     public static function resetProperties(&$self)

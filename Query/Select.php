@@ -14,9 +14,10 @@
 			return $this;
 		}   
 
-		public function selectRaw() 
+		public function selectRaw(String $raw) 
 		{
-
+			$this->sql = $raw;
+			return $this;
 		}
 
 		public function skip(int $n) 
@@ -40,7 +41,7 @@
 
 		public function values(...$args)
 		{
-			$this->types = 1;
+			$this->types = self::SELECT;
 			$this->select = implode(",", $args);
 			return $this->autoRun();
 		}
@@ -86,13 +87,13 @@
 
 		public function get() 
 		{
-			$this->types = 1;
-			return $this->autoRun();
+			$this->types = self::SELECT;
+			return $this->autoRun(true);
 		}
 		
 		public function first()
 		{
-			$this->types = 0;
+			$this->types = self::SELECT;
 			return $this->autoRun();
 		}
 

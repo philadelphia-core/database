@@ -121,11 +121,11 @@
 				}
 				return false;
 			}
-			catch(PDOException $ex)
+			catch (PDOException $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at runExecute' .implode(" ", $ex->errorInfo()));
 			}
-			catch(Exception $ex)
+			catch (Exception $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at runExecute' .implode(" ", $ex->errorInfo()));
 			}
@@ -236,14 +236,13 @@
 			try
 			{
 				$this->sql = "SELECT" . $builder->sql;
-				// var_dump($this->sql);
 				return $this->runQuery();
 			}
-			catch(PDOException $ex)
+			catch (PDOException $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at select document' .implode(" ", $ex->errorInfo()));
 			}
-			catch(Exception $ex)
+			catch (Exception $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at select document' .implode(" ", $ex->errorInfo()));
 			}
@@ -265,11 +264,11 @@
 				$statement = $this->prepare($this->sql);
 				return $this->runExecute($statement, true);
 			}
-			catch(PDOException $ex)
+			catch (PDOException $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at insert document' .implode(" ", $ex->errorInfo()));
 			}
-			catch(Exception $ex)
+			catch (Exception $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at insert document' .implode(" ", $ex->errorInfo()));
 			}
@@ -291,11 +290,11 @@
 				$statement = $this->prepare($this->sql);
 				return $this->runExecuteTransation($statement, true);
 			}
-			catch(PDOException $ex)
+			catch (PDOException $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at insert many document' .implode(" ", $ex->errorInfo()));
 			}
-			catch(Exception $ex)
+			catch (Exception $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at insert many document' .implode(" ", $ex->errorInfo()));
 			}
@@ -317,11 +316,11 @@
 				$statement = $this->prepare($this->sql);
 				return $this->runExecute($statement, false, true);
 			}
-			catch(PDOException $ex)
+			catch (PDOException $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at update document' .implode(" ", $ex->errorInfo()));
 			}
-			catch(Exception $ex)
+			catch (Exception $ex)
 			{
 				throw new Exceptions($ex->getCode(), 'Error at select document' .implode(" ", $ex->errorInfo()));
 			}
@@ -340,23 +339,31 @@
 			try
 			{
 				$this->sql = "DELETE" . $builder->sql;
-				$this->values = $builder->values;
-
-				if (empty($this->values))
-				{
-					return $this->runExec();
-				}
-
-				$statement = $this->prepare($this->sql);
-				return $this->runExecute($statement, false, true);
+				return $this->runQuery();
 			}
-			catch(PDOException $ex)
+			catch (PDOException $ex)
 			{
-				throw new Exceptions($ex->getCode(), 'Error at select document' .implode(" ", $ex->errorInfo()));
+				throw new Exceptions($ex->getCode(), 'Error at delete document' .implode(" ", $ex->errorInfo()));
 			}
-			catch(Exception $ex)
+			catch (Exception $ex)
 			{
-				throw new Exceptions($ex->getCode(), 'Error at select document' .implode(" ", $ex->errorInfo()));
+				throw new Exceptions($ex->getCode(), 'Error at delete document' .implode(" ", $ex->errorInfo()));
 			}
 		} 
+
+		public function __raw(IBuilder $builder) {
+			try
+			{
+				$this->sql = $builder->sql;
+				return $this->runQuery();
+			}
+			catch (PDOException $ex)
+			{
+				throw new Exceptions($ex->getCode(), 'Error at raw document' .implode(" ", $ex->errorInfo()));
+			}
+			catch (Exception $ex)
+			{
+				throw new Exceptions($ex->getCode(), 'Error at raw document' .implode(" ", $ex->errorInfo()));
+			}
+		}
   }
