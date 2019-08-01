@@ -12,26 +12,18 @@
   {
     protected static $builder;
 
-    function __construct()
-    {
-      self::$builder = new Builder;
-      self::$builder->model = get_class($this);
-      self::$builder->table  = $this->table ?? get_class($this);
-    }
-    
     public static function __callStatic($name, $arguments)
     {
-      if (property_exists(self, $name))
-      {
-        return self::$name($arguments);
-      }
-
-      return self::$builder->{$name}($arguments);
+      $instance = new static;
+      $builder = new Builder;
+      $builder->model = get_class($instance);
+      $builder->table = $instance->table ?? get_class($instance);
+      return $builder->{$name}($arguments);
     }
 
     public static function find($id) 
     {
-      
+      return self::$builder->find($id);
     }
 
     public static function create() 
@@ -58,8 +50,16 @@
     {
       unset($this->table);
 
-      $array = (array)$this;
-      
+      if (!property_exists($this, 'id')) {
+        return self::$builder->insert((array)$this);
+      }
+
+      $id = $this->id;
+      unset($this->id);
+
+      return self::$builder
+                          ->where('id', $id)
+                          ->update((array)$this);
     }
 
     public function delete() {

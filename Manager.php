@@ -259,7 +259,7 @@
 		{
 			try 
 			{
-				$this->sql = "INSERT INTO" . $builder->ql;
+				$this->sql = "INSERT INTO" . $builder->sql;
 				$this->values= $builder->values;
 				$statement = $this->prepare($this->sql);
 				return $this->runExecute($statement, true);

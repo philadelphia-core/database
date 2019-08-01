@@ -66,23 +66,22 @@
 			return (empty($this->first()) ? true : false);
 		}
 
-		public function find(?array $args) 
+		public function find($id) 
 		{
-			$Ids = $args[0];
+			if (empty($id)) {
+				return NULL;
+			}
 
-			if(!is_string($Ids) && is_array($Ids) && !empty($Ids))
-			{
-				foreach($Ids as $id)
+			if (is_array($id)) {
+				foreach($id as $key => $value)
 				{
-					$this->orWhere('id', $id);
+					$this->orWhere('id', $value);
 				}
-			}
-			else 
-			{
-				$this->where('id', $Ids);
+				return $this->get();
 			}
 
-			return $this->get();
+			$this->where('id', $id);
+			return $this->first();
 		}
 
 		public function get() 

@@ -37,7 +37,7 @@
       $this->fields = implode(",", $this->fields);
       $this->colonFields = implode(",", $this->colonFields);
       return $this->sql = sprintf(
-                            "%s %s (%s) VALUES (%s)",
+                            " %s %s (%s) VALUES (%s)",
                             $this->table,
                             $this->as,
                             $this->fields,
@@ -56,7 +56,7 @@
       $this->where = $where ? " WHERE {$where}" : "";
 
       return $this->sql = sprintf(
-                            "%s %s SET %s %s",
+                            " %s %s SET %s %s",
                             $this->table,
                             $this->as,
                             $this->fields,

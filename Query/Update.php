@@ -29,14 +29,10 @@
 			
 			if($find->count > 0)
 			{
-				$response = $this->where([$arr])
+				return $this->where([$arr])
 										->update(array_merge($body, $where));
 			}
-			else 
-			{
-				$response = $this->insert($body);
-			}
 
-			return $response;
+			return $this->insert($body);
 		}
 	}

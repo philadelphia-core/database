@@ -67,7 +67,7 @@
 
 		public function insert(array $body)
 		{
-			if (Utils::has_string_keys($body))
+			if (Util::has_string_keys($body))
 			{
 				return $this->__insertOne($body);
 			}
