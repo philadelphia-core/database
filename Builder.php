@@ -137,32 +137,18 @@
     }
 
     protected function parse_args(&$in)
-    {
-      $curr = $in;
-      $out;
-      while(true)
-      {
-        if (count($curr) === 1)
-        {
-          $curr = $curr[0];
+    { 
+      $current = $in;
+      
+      while (true) {
+        if (count($current) === 1) {
+          $current = $current[0];
           continue;
         }
 
-        $out = [array_values($curr)];
+        $in = $current;
         break;
       }
-
-      if (count($out) > 3) {
-        throw new Exceptions("
-                          Just can only pass 2 or 3 parameters for the pipeline `where`
-                          example
-                          `
-                            ->where('column', 'other columns')
-                            ->where('column', 'operator('=', '>', '<' ...)', 'other columns')
-                          `");
-      }
-      
-      return $in = $out;
     }
 
     protected function autoRun(bool $many=false)

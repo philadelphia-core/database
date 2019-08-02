@@ -6,35 +6,54 @@
 
 	trait Where
 	{
-    private function __where($args) 
-    {
-      foreach($args as $key => $value) 
+    private function __print_where(array $clouse) {
+      if (count($clouse) > 3 ) {
+        throw new Exceptions("
+                          Just can only pass 2 or 3 parameters for the pipeline `where`
+                          example
+                          `
+                            ->where('column', 'other columns')
+                            ->where('column', 'operator('=', '>', '<' ...)', 'other columns')
+                          `");
+      }
+
+      if (count($clouse) === 2) 
       {
-        if ($key > 0 && $key < count($args))
+        $arr = array_reduce($clouse, function($carry, $item) {
+          if (count($carry) === 1) {
+            $carry[] = "=";
+          } 
+        
+          $carry[] = $item;
+
+          return $carry;
+        }, []);
+      }
+
+      $arr[2] = self::$DBInstance->quote($arr[2]);
+      $this->where .= sprintf(
+        "%s %s %s",
+        ...$arr
+      );
+    }
+
+    private function __where(array $clouse) 
+    {
+      foreach($clouse as $key => $value) 
+      {
+        if (!empty($this->where))
         {
           $this->addAnd($this->where);
         }
 
-        if (count($value) == 2)
+        if (!is_array($value))
         {
-          list($field, $val) = $value;
-          $this->where .= sprintf(
-                                  "%s = %s",
-                                  $field,
-                                  self::$DBInstance->quote($val));
-          continue;
+          $this->__print_where($clouse);
+          break;  
         }
-        else if (count($value) == 3) 
-        {
-          list($field, $op, $val) = $value;
-          $this->where .= sprintf(
-                                  "%s %s %s",
-                                  $field,
-                                  $this->operator($op),
-                                  self::$DBInstance->quote($val));
-          continue;
-        }
+        $this->__print_where($value);
       }
+      
       return $this;
     }
 
